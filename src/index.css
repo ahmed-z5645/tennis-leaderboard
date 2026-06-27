@@ -1,0 +1,119 @@
+@import 'tailwindcss';
+
+/* ── ACES design tokens ───────────────────────────────────────────────
+   A Duolingo-style aesthetic: Nunito, soft grey canvas, white cards with
+   a chunky "pressable" bottom border, and a confident green primary. */
+@theme {
+  --font-sans: 'Nunito', system-ui, sans-serif;
+
+  /* Surfaces & text */
+  --color-canvas: #ebebeb;
+  --color-surface: #ffffff;
+  --color-ink: #3c3c3c;
+  --color-muted: #afafaf;
+  --color-edge: #e5e5e5; /* card border */
+  --color-edge-shadow: #d5d5d5; /* pressable bottom border */
+
+  /* Green (primary / win) */
+  --color-green: #58cc02;
+  --color-green-dark: #49a700;
+  --color-green-light: #d7ffb8;
+  --color-green-mid: #b8f098;
+  --color-green-shadow: #a0e080;
+
+  /* Red (loss) */
+  --color-loss: #ff4b4b;
+  --color-loss-dark: #cc3333;
+  --color-loss-light: #ffd5d5;
+
+  /* Gold (rank #1) */
+  --color-gold: #ffb800;
+  --color-gold-edge: #ffd966;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-canvas);
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+input {
+  outline: none;
+  font-family: var(--font-sans);
+}
+input::placeholder {
+  color: var(--color-muted);
+}
+button {
+  font-family: var(--font-sans);
+}
+
+/* ── Animations (carried over from the design) ───────────────────────── */
+@keyframes livepulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.55);
+  }
+}
+@keyframes sheetup {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes popin {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes flashgreen {
+  0% {
+    background: var(--color-green-light);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@keyframes flashred {
+  0% {
+    background: var(--color-loss-light);
+  }
+  100% {
+    background: transparent;
+  }
+}
