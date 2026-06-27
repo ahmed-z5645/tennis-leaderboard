@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #EBEBEB; min-height: 100vh; }
+    input { outline: none; font-family: 'Nunito', system-ui, sans-serif; }
+    input::placeholder { color: #AFAFAF; }
+    button { font-family: 'Nunito', system-ui, sans-serif; }
+    @keyframes livepulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.3; transform: scale(0.55); }
+    }
+    @keyframes sheetup {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes fadein {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes popin {
+      0%   { transform: scale(0.9); opacity: 0; }
+      60%  { transform: scale(1.04); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</helmet>
+
+<div style="max-width:375px; margin:0 auto; background:#EBEBEB; min-height:100vh; font-family:'Nunito',system-ui,sans-serif; color:#3C3C3C; position:relative; overflow-x:hidden;">
+
+  <!-- ══════════════ LEADERBOARD ══════════════ -->
+  <sc-if value="{{ isLeaderboard }}" hint-placeholder-val="{{ true }}">
+    <div data-screen-label="Leaderboard" style="display:flex; flex-direction:column; min-height:100vh;">
+
+      <!-- Top nav -->
+      <div style="padding:14px 20px 12px; display:flex; align-items:center; justify-content:space-between; background:#FFFFFF; border-bottom:2px solid #E5E5E5; position:sticky; top:0; z-index:10;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:22px; font-weight:900; letter-spacing:-0.5px; color:#3C3C3C; line-height:1;">ACES</span>
+          <div style="display:flex; align-items:center; gap:5px; background:#D7FFB8; border-radius:20px; padding:4px 10px;">
+            <div style="width:6px; height:6px; border-radius:50%; background:#58CC02; animation:livepulse 2s ease-in-out infinite; flex-shrink:0;"></div>
+            <span style="font-size:11px; font-weight:800; color:#49A700; letter-spacing:0.3px;">Live</span>
+          </div>
+        </div>
+        <div style="width:38px; height:38px; border-radius:50%; background:#5B54E8; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px; cursor:pointer; color:#FFFFFF; box-shadow:0 3px 0 #4340B0;" onClick="{{ goLogin }}">A</div>
+      </div>
+
+      <!-- Header -->
+      <div style="padding:22px 20px 10px;">
+        <h1 style="font-size:28px; font-weight:900; letter-spacing:-0.5px; line-height:1; color:#3C3C3C;">Leaderboard</h1>
+        <p style="font-size:13px; color:#AFAFAF; margin-top:4px; font-weight:600;">5 players · just updated</p>
+      </div>
+
+      <!-- Player rows -->
+      <div style="flex:1; padding:4px 16px 12px;">
+        <sc-for list="{{ rankedPlayers }}" as="player" hint-placeholder-count="5">
+          <div style="display:flex; align-items:center; gap:12px; padding:14px 16px; background:#FFFFFF; border-radius:20px; margin-bottom:8px; border:2px solid #E5E5E5; border-bottom:{{ player.bottomBorder }}; cursor:pointer;" onClick="{{ goProfile }}">
+            <!-- Rank -->
+            <span style="font-size:13px; font-weight:800; color:{{ player.rankColor }}; width:20px; flex-shrink:0; text-align:center; line-height:1;">{{ player.rank }}</span>
+            <!-- Avatar -->
+            <div style="width:46px; height:46px; border-radius:50%; background:{{ player.color }}; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px; color:#FFFFFF; flex-shrink:0; box-shadow:0 3px 0 {{ player.avatarShadow }};">{{ player.initial }}</div>
+            <!-- Name + record -->
+            <div style="flex:1;">
+              <div style="font-size:16px; font-weight:800; color:#3C3C3C; line-height:1.2;">{{ player.name }}</div>
+              <div style="font-size:12px; color:#AFAFAF; margin-top:2px; font-weight:700; font-variant-numeric:tabular-nums;">{{ player.record }}</div>
+            </div>
+            <!-- ELO + streak -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <span style="font-size:24px; font-weight:900; color:#3C3C3C; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; line-height:1;">{{ player.elo }}</span>
+              <div style="background:{{ player.streakBg }}; border-radius:100px; padding:3px 10px;">
+                <span style="font-size:12px; font-weight:800; color:{{ player.streakColor }};">{{ player.streak }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- Bottom nav -->
+      <div style="background:#FFFFFF; display:flex; border-top:2px solid #E5E5E5; position:sticky; bottom:0;">
+        <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navLbColor }};" onClick="{{ goLeaderboard }}">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="10" width="4" height="9" rx="2" fill="currentColor"></rect><rect x="8" y="6" width="4" height="13" rx="2" fill="currentColor"></rect><rect x="15" y="2" width="4" height="17" rx="2" fill="currentColor"></rect></svg>
+          <span style="font-size:11px; font-weight:800;">Ranks</span>
+        </button>
+        <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navLogColor }};" onClick="{{ goLog }}">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="2.2"></circle><path d="M10 6v8M6 10h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg>
+          <span style="font-size:11px; font-weight:800;">Log</span>
+        </button>
+        <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navProfileColor }};" onClick="{{ goProfile }}">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="2.2"></circle><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg>
+          <span style="font-size:11px; font-weight:800;">Profile</span>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ══════════════ LOG MATCH ══════════════ -->
+  <sc-if value="{{ isLog }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Log Match" style="display:flex; flex-direction:column; min-height:100vh; position:relative;">
+
+      <div style="padding:14px 20px 12px; display:flex; align-items:center; gap:14px; background:#FFFFFF; border-bottom:2px solid #E5E5E5; position:sticky; top:0; z-index:10;">
+        <button style="width:36px; height:36px; background:#EBEBEB; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#3C3C3C; flex-shrink:0;" onClick="{{ goBack }}">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </button>
+        <span style="font-size:18px; font-weight:900; color:#3C3C3C;">Log match</span>
+      </div>
+
+      <div style="flex:1; padding:20px 20px 8px;">
+        <p style="font-size:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#AFAFAF; margin-bottom:10px;">Players</p>
+
+        <!-- P1 -->
+        <div style="background:#FFFFFF; border-radius:16px; padding:14px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5; margin-bottom:0;" onClick="{{ openSheet1 }}">
+          <div style="width:44px; height:44px; border-radius:50%; background:{{ logP1Color }}; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px; color:#FFFFFF; flex-shrink:0; border:{{ logP1AvatarBorder }}; box-shadow:{{ logP1AvatarShadow }};">{{ logP1Initial }}</div>
+          <span style="font-size:16px; font-weight:800; color:{{ logP1TextColor }}; flex:1;">{{ logP1Name }}</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="color:#D5D5D5; flex-shrink:0;"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </div>
+
+        <!-- VS -->
+        <div style="display:flex; align-items:center; justify-content:center; margin:10px 0;">
+          <div style="background:#F5F5F5; border-radius:100px; padding:6px 18px; border:2px solid #E5E5E5;">
+            <span style="font-size:12px; font-weight:800; color:#AFAFAF; letter-spacing:1.5px;">VS</span>
+          </div>
+        </div>
+
+        <!-- P2 -->
+        <div style="background:#FFFFFF; border-radius:16px; padding:14px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5;" onClick="{{ openSheet2 }}">
+          <div style="width:44px; height:44px; border-radius:50%; background:{{ logP2Color }}; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px; color:#FFFFFF; flex-shrink:0; border:{{ logP2AvatarBorder }}; box-shadow:{{ logP2AvatarShadow }};">{{ logP2Initial }}</div>
+          <span style="font-size:16px; font-weight:800; color:{{ logP2TextColor }}; flex:1;">{{ logP2Name }}</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="color:#D5D5D5; flex-shrink:0;"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </div>
+
+        <p style="font-size:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#AFAFAF; margin-top:24px; margin-bottom:8px;">Score</p>
+
+        <!-- Set 1 -->
+        <div style="margin-bottom:8px;">
+          <p style="font-size:13px; color:#AFAFAF; font-weight:700; margin-bottom:8px;">Set 1</p>
+          <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+            <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength="2" value="{{ set0p1 }}" onChange="{{ onSet0P1 }}" placeholder="0" style="width:84px; height:80px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:42px; font-weight:900; text-align:center; font-variant-numeric:tabular-nums;" />
+            <span style="font-size:24px; color:#D5D5D5; font-weight:900; line-height:1; user-select:none;">–</span>
+            <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength="2" value="{{ set0p2 }}" onChange="{{ onSet0P2 }}" placeholder="0" style="width:84px; height:80px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:42px; font-weight:900; text-align:center; font-variant-numeric:tabular-nums;" />
+          </div>
+        </div>
+
+        <sc-if value="{{ showSet1 }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom:8px;">
+            <p style="font-size:13px; color:#AFAFAF; font-weight:700; margin-bottom:8px;">Set 2</p>
+            <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+              <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength="2" value="{{ set1p1 }}" onChange="{{ onSet1P1 }}" placeholder="0" style="width:84px; height:80px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:42px; font-weight:900; text-align:center; font-variant-numeric:tabular-nums;" />
+              <span style="font-size:24px; color:#D5D5D5; font-weight:900; line-height:1; user-select:none;">–</span>
+              <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength="2" value="{{ set1p2 }}" onChange="{{ onSet1P2 }}" placeholder="0" style="width:84px; height:80px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:42px; font-weight:900; text-align:center; font-variant-numeric:tabular-nums;" />
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showSet2 }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom:8px;">
+            <p style="font-size:13px; color:#AFAFAF; font-weight:700; margin-bottom:8px;">Set 3</p>
+            <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+              <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength="2" value="{{ set2p1 }}" onChange="{{ onSet2P1 }}" placeholder="0" style="width:84px; height:80px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:42px; font-weight:900; text-align:center; font-variant-numeric:tabular-nums;" />
+              <span style="font-size:24px; color:#D5D5D5; font-weight:900; line-height:1; user-select:none;">–</span>
+              <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength="2" value="{{ set2p2 }}" onChange="{{ onSet2P2 }}" placeholder="0" style="width:84px; height:80px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:42px; font-weight:900; text-align:center; font-variant-numeric:tabular-nums;" />
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ canAddSet }}" hint-placeholder-val="{{ true }}">
+          <button style="background:transparent; border:none; color:#AFAFAF; font-size:14px; font-weight:800; cursor:pointer; padding:10px 0; display:block;" onClick="{{ addSet }}">+ Add set</button>
+        </sc-if>
+
+        <sc-if value="{{ showLivePreview }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#D7FFB8; border-radius:16px; padding:16px 20px; margin-top:16px; text-align:center; border:2px solid #B8F098; border-bottom:4px solid #A0E080; animation:popin 0.3s ease;">
+            <p style="font-size:11px; font-weight:800; letter-spacing:0.5px; color:#49A700; margin-bottom:3px; text-transform:uppercase;">Live result</p>
+            <p style="font-size:20px; font-weight:900; color:#3C3C3C;">{{ winnerText }}</p>
+          </div>
+        </sc-if>
+      </div>
+
+      <div>
+        <div style="padding:14px 20px 10px;">
+          <button style="width:100%; padding:16px; background:{{ logBtnBg }}; color:{{ logBtnColor }}; border:none; border-radius:16px; font-size:17px; font-weight:900; cursor:pointer; box-shadow:{{ logBtnShadow }};" onClick="{{ submitMatch }}">Log match</button>
+        </div>
+        <div style="background:#FFFFFF; display:flex; border-top:2px solid #E5E5E5;">
+          <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navLbColor }};" onClick="{{ goLeaderboard }}">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="10" width="4" height="9" rx="2" fill="currentColor"></rect><rect x="8" y="6" width="4" height="13" rx="2" fill="currentColor"></rect><rect x="15" y="2" width="4" height="17" rx="2" fill="currentColor"></rect></svg>
+            <span style="font-size:11px; font-weight:800;">Ranks</span>
+          </button>
+          <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navLogColor }};" onClick="{{ goLog }}">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="2.2"></circle><path d="M10 6v8M6 10h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg>
+            <span style="font-size:11px; font-weight:800;">Log</span>
+          </button>
+          <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navProfileColor }};" onClick="{{ goProfile }}">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="2.2"></circle><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg>
+            <span style="font-size:11px; font-weight:800;">Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Player sheet -->
+      <sc-if value="{{ playerSheetOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:fixed; inset:0; max-width:375px; margin:0 auto; background:rgba(60,60,60,0.5); z-index:50; animation:fadein 0.15s ease;" onClick="{{ closeSheet }}"></div>
+        <div style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:375px; background:#FFFFFF; border-radius:24px 24px 0 0; z-index:51; animation:sheetup 0.22s cubic-bezier(0.32,0.72,0,1); padding-bottom:32px; border-top:2px solid #E5E5E5;">
+          <div style="width:40px; height:5px; background:#E5E5E5; border-radius:3px; margin:14px auto 16px;"></div>
+          <p style="font-size:18px; font-weight:900; color:#3C3C3C; padding:0 20px 14px; border-bottom:2px solid #F0F0F0;">Pick a player</p>
+          <sc-for list="{{ sheetPlayers }}" as="sp" hint-placeholder-count="5">
+            <div style="display:flex; align-items:center; gap:14px; padding:14px 20px; cursor:pointer; border-bottom:2px solid #F5F5F5;" onClick="{{ sp.onSelect }}">
+              <div style="width:44px; height:44px; border-radius:50%; background:{{ sp.color }}; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:17px; color:#FFFFFF; flex-shrink:0; box-shadow:0 3px 0 {{ sp.avatarShadow }};">{{ sp.initial }}</div>
+              <div style="flex:1;">
+                <div style="font-size:16px; font-weight:800; color:#3C3C3C;">{{ sp.name }}</div>
+                <div style="font-size:12px; color:#AFAFAF; margin-top:2px; font-weight:700; font-variant-numeric:tabular-nums;">{{ sp.elo }} ELO · {{ sp.record }}</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#D5D5D5;"><path d="M5 2.5l5 5.5-5 5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Confirmation overlay -->
+      <sc-if value="{{ showConfirmation }}" hint-placeholder-val="{{ false }}">
+        <div style="position:fixed; inset:0; max-width:375px; margin:0 auto; background:#EBEBEB; z-index:100; display:flex; flex-direction:column; padding:48px 24px 40px; animation:fadein 0.2s ease; overflow-y:auto;">
+
+          <div style="width:60px; height:60px; border-radius:50%; background:#D7FFB8; border:3px solid #B8F098; display:flex; align-items:center; justify-content:center; margin-bottom:24px; animation:popin 0.4s ease;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 12l5.5 5.5L20 6" stroke="#49A700" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+
+          <p style="font-size:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#AFAFAF; margin-bottom:6px;">Match result</p>
+          <h2 style="font-size:30px; font-weight:900; letter-spacing:-0.5px; line-height:1.1; color:#3C3C3C; margin-bottom:6px;">{{ confTitle }}</h2>
+          <p style="font-size:15px; color:#AFAFAF; font-variant-numeric:tabular-nums; margin-bottom:36px; font-weight:700;">{{ setScoresText }}</p>
+
+          <div style="display:flex; gap:12px; margin-bottom:auto;">
+            <div style="flex:1; background:#FFFFFF; border-radius:20px; padding:22px 12px; text-align:center; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5;">
+              <div style="width:52px; height:52px; border-radius:50%; background:{{ confWinnerColor }}; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:20px; color:#FFFFFF; margin:0 auto 12px; box-shadow:0 3px 0 {{ confWinnerShadow }};">{{ confWinnerInitial }}</div>
+              <p style="font-size:14px; font-weight:800; color:#3C3C3C; margin-bottom:8px;">{{ confWinnerName }}</p>
+              <p style="font-size:42px; font-weight:900; color:#58CC02; letter-spacing:-1px; line-height:1; font-variant-numeric:tabular-nums;">{{ confWinnerDelta }}</p>
+              <p style="font-size:12px; color:#AFAFAF; margin-top:4px; font-weight:700; font-variant-numeric:tabular-nums;">→ {{ confWinnerNewElo }}</p>
+            </div>
+            <div style="flex:1; background:#FFFFFF; border-radius:20px; padding:22px 12px; text-align:center; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5;">
+              <div style="width:52px; height:52px; border-radius:50%; background:{{ confLoserColor }}; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:20px; color:#FFFFFF; margin:0 auto 12px; box-shadow:0 3px 0 {{ confLoserShadow }};">{{ confLoserInitial }}</div>
+              <p style="font-size:14px; font-weight:800; color:#3C3C3C; margin-bottom:8px;">{{ confLoserName }}</p>
+              <p style="font-size:42px; font-weight:900; color:#FF4B4B; letter-spacing:-1px; line-height:1; font-variant-numeric:tabular-nums;">{{ confLoserDelta }}</p>
+              <p style="font-size:12px; color:#AFAFAF; margin-top:4px; font-weight:700; font-variant-numeric:tabular-nums;">→ {{ confLoserNewElo }}</p>
+            </div>
+          </div>
+
+          <div style="margin-top:28px;">
+            <button style="width:100%; padding:16px; background:#58CC02; color:#FFFFFF; border:none; border-radius:16px; font-size:17px; font-weight:900; cursor:pointer; box-shadow:0 4px 0 #49A700;" onClick="{{ closeConfirmation }}">Back to leaderboard</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- ══════════════ PROFILE ══════════════ -->
+  <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Profile" style="display:flex; flex-direction:column; min-height:100vh;">
+
+      <div style="padding:14px 20px 12px; display:flex; align-items:center; gap:14px; background:#FFFFFF; border-bottom:2px solid #E5E5E5; position:sticky; top:0; z-index:10;">
+        <button style="width:36px; height:36px; background:#EBEBEB; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#3C3C3C; flex-shrink:0;" onClick="{{ goBack }}">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </button>
+        <span style="font-size:18px; font-weight:900; color:#3C3C3C;">Profile</span>
+      </div>
+
+      <div style="flex:1; padding:24px 20px 16px;">
+
+        <!-- Header -->
+        <div style="display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:24px;">
+          <div style="width:80px; height:80px; border-radius:50%; background:#5B54E8; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:32px; color:#FFFFFF; margin-bottom:16px; box-shadow:0 5px 0 #4340B0;">A</div>
+          <h2 style="font-size:28px; font-weight:900; color:#3C3C3C; line-height:1; margin-bottom:8px;">Ahmed</h2>
+          <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:6px;">
+            <span style="font-size:44px; font-weight:900; color:#3C3C3C; letter-spacing:-2px; font-variant-numeric:tabular-nums; line-height:1;">1284</span>
+            <span style="font-size:13px; font-weight:800; color:#AFAFAF; letter-spacing:0.3px; text-transform:uppercase;">ELO</span>
+          </div>
+          <p style="font-size:13px; color:#AFAFAF; font-weight:700;">Joined March 2025</p>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+          <div style="flex:1; background:#FFFFFF; border-radius:16px; padding:14px 8px; text-align:center; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5;">
+            <p style="font-size:16px; font-weight:900; color:#3C3C3C; font-variant-numeric:tabular-nums;">18–6</p>
+            <p style="font-size:10px; color:#AFAFAF; margin-top:3px; font-weight:800; letter-spacing:0.3px; text-transform:uppercase;">Record</p>
+          </div>
+          <div style="flex:1; background:#D7FFB8; border-radius:16px; padding:14px 8px; text-align:center; border:2px solid #B8F098; border-bottom:3px solid #A0E080;">
+            <p style="font-size:16px; font-weight:900; color:#49A700; font-variant-numeric:tabular-nums;">W4</p>
+            <p style="font-size:10px; color:#80C060; margin-top:3px; font-weight:800; letter-spacing:0.3px; text-transform:uppercase;">Streak</p>
+          </div>
+          <div style="flex:1; background:#FFFFFF; border-radius:16px; padding:14px 8px; text-align:center; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5;">
+            <p style="font-size:16px; font-weight:900; color:#3C3C3C; font-variant-numeric:tabular-nums;">74%</p>
+            <p style="font-size:10px; color:#AFAFAF; margin-top:3px; font-weight:800; letter-spacing:0.3px; text-transform:uppercase;">Sets</p>
+          </div>
+        </div>
+
+        <!-- ELO chart -->
+        <div style="background:#FFFFFF; border-radius:20px; padding:18px; margin-bottom:20px; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <p style="font-size:16px; font-weight:900; color:#3C3C3C;">ELO history</p>
+            <div style="background:#D7FFB8; border-radius:100px; padding:4px 10px; border:2px solid #B8F098;">
+              <span style="font-size:12px; color:#49A700; font-weight:800; font-variant-numeric:tabular-nums;">+104 ↑</span>
+            </div>
+          </div>
+          {{ eloChart }}
+        </div>
+
+        <!-- H2H -->
+        <div style="margin-bottom:20px;">
+          <p style="font-size:18px; font-weight:900; color:#3C3C3C; margin-bottom:10px;">Head to head</p>
+          <div style="background:#FFFFFF; border-radius:20px; overflow:hidden; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5;">
+            <sc-for list="{{ ahmedH2H }}" as="h2h" hint-placeholder-count="4">
+              <div style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:2px solid #F5F5F5;">
+                <div style="width:38px; height:38px; border-radius:50%; background:{{ h2h.color }}; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; color:#FFFFFF; flex-shrink:0; box-shadow:0 2px 0 {{ h2h.shadow }};">{{ h2h.initial }}</div>
+                <span style="font-size:15px; font-weight:800; color:#3C3C3C; flex:1;">{{ h2h.name }}</span>
+                <div style="background:#D7FFB8; border-radius:100px; padding:4px 12px; border:2px solid #B8F098;">
+                  <span style="font-size:13px; font-weight:800; color:#49A700; font-variant-numeric:tabular-nums;">{{ h2h.record }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Match history -->
+        <div style="margin-bottom:20px;">
+          <p style="font-size:18px; font-weight:900; color:#3C3C3C; margin-bottom:10px;">Recent matches</p>
+          <div style="background:#FFFFFF; border-radius:20px; overflow:hidden; border:2px solid #E5E5E5; border-bottom:3px solid #D5D5D5;">
+            <sc-for list="{{ ahmedMatches }}" as="match" hint-placeholder-count="4">
+              <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:2px solid #F5F5F5;">
+                <span style="font-size:11px; color:#AFAFAF; width:44px; flex-shrink:0; font-weight:700;">{{ match.date }}</span>
+                <span style="font-size:13px; color:#3C3C3C; flex:1; font-weight:800;">vs {{ match.opp }}</span>
+                <span style="font-size:12px; color:#AFAFAF; font-variant-numeric:tabular-nums; font-weight:700; margin-right:6px;">{{ match.score }}</span>
+                <div style="background:#D7FFB8; border-radius:100px; padding:3px 10px; border:2px solid #B8F098;">
+                  <span style="font-size:13px; font-weight:800; color:#49A700; font-variant-numeric:tabular-nums;">{{ match.delta }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF; display:flex; border-top:2px solid #E5E5E5; position:sticky; bottom:0;">
+        <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navLbColor }};" onClick="{{ goLeaderboard }}">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="10" width="4" height="9" rx="2" fill="currentColor"></rect><rect x="8" y="6" width="4" height="13" rx="2" fill="currentColor"></rect><rect x="15" y="2" width="4" height="17" rx="2" fill="currentColor"></rect></svg>
+          <span style="font-size:11px; font-weight:800;">Ranks</span>
+        </button>
+        <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navLogColor }};" onClick="{{ goLog }}">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="2.2"></circle><path d="M10 6v8M6 10h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg>
+          <span style="font-size:11px; font-weight:800;">Log</span>
+        </button>
+        <button style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 0 18px; background:transparent; border:none; cursor:pointer; color:{{ navProfileColor }};" onClick="{{ goProfile }}">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="2.2"></circle><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg>
+          <span style="font-size:11px; font-weight:800;">Profile</span>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ══════════════ LOGIN ══════════════ -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Login" style="display:flex; flex-direction:column; min-height:100vh; padding:0 28px; background:#EBEBEB;">
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-bottom:24px;">
+        <div style="width:80px; height:80px; border-radius:24px; background:#58CC02; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow:0 5px 0 #49A700;">
+          <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+            <circle cx="21" cy="21" r="16" stroke="white" stroke-width="2.5"></circle>
+            <path d="M9 21c3-6.5 7-10 12-10s9 3.5 12 10" stroke="white" stroke-width="2.5" stroke-linecap="round"></path>
+            <path d="M9 21c3 6.5 7 10 12 10s9-3.5 12-10" stroke="white" stroke-width="2.5" stroke-linecap="round"></path>
+            <line x1="9" y1="21" x2="33" y2="21" stroke="white" stroke-width="2.5" stroke-linecap="round"></line>
+          </svg>
+        </div>
+        <h1 style="font-size:40px; font-weight:900; letter-spacing:-1px; color:#3C3C3C; line-height:1; margin-bottom:10px;">ACES</h1>
+        <p style="font-size:16px; color:#AFAFAF; font-weight:700;">Track every win.</p>
+      </div>
+      <div style="padding-bottom:52px;">
+        <input type="email" value="{{ email }}" onChange="{{ onEmailChange }}" placeholder="your@email.com" style="width:100%; padding:17px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:16px; margin-bottom:12px; font-weight:700;" />
+        <button style="width:100%; padding:16px; background:#58CC02; color:#FFFFFF; border:none; border-radius:16px; font-size:17px; font-weight:900; cursor:pointer; box-shadow:0 4px 0 #49A700; margin-bottom:18px;" onClick="{{ sendMagicLink }}">Send magic link</button>
+        <p style="text-align:center; font-size:13px; color:#AFAFAF; line-height:1.6; font-weight:700;">We'll email you a link — no password needed.</p>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ══════════════ ONBOARDING ══════════════ -->
+  <sc-if value="{{ isOnboarding }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Onboarding" style="display:flex; flex-direction:column; min-height:100vh; padding:0 28px; background:#EBEBEB;">
+      <div style="padding-top:56px; padding-bottom:32px;">
+        <div style="display:inline-block; background:#D7FFB8; border-radius:100px; padding:6px 14px; border:2px solid #B8F098; margin-bottom:16px;">
+          <span style="font-size:13px; font-weight:800; color:#49A700;">You're in!</span>
+        </div>
+        <h1 style="font-size:30px; font-weight:900; color:#3C3C3C; line-height:1.15;">Set up your<br/>profile.</h1>
+      </div>
+      <div style="display:flex; justify-content:center; margin-bottom:28px;">
+        <div style="width:88px; height:88px; border-radius:50%; background:{{ avatarColor }}; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:36px; color:#FFFFFF; box-shadow:0 5px 0 {{ avatarShadow }};">{{ displayInitial }}</div>
+      </div>
+      <div style="margin-bottom:24px;">
+        <p style="font-size:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#AFAFAF; margin-bottom:10px;">Display name</p>
+        <input type="text" value="{{ displayName }}" onChange="{{ onDisplayNameChange }}" placeholder="Ahmed" style="width:100%; padding:16px; background:#FFFFFF; border:2px solid #E5E5E5; border-bottom:4px solid #D5D5D5; border-radius:16px; color:#3C3C3C; font-size:17px; font-weight:800;" />
+      </div>
+      <div style="margin-bottom:36px;">
+        <p style="font-size:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#AFAFAF; margin-bottom:14px;">Pick a color</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <sc-for list="{{ colorCircles }}" as="cc" hint-placeholder-count="8">
+            <div style="width:44px; height:44px; border-radius:50%; background:{{ cc.color }}; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 0 {{ cc.shadowColor }}; border:{{ cc.border }};" onClick="{{ cc.onSelect }}">
+              <sc-if value="{{ cc.selected }}" hint-placeholder-val="{{ false }}">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9l5 5 7-8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <button style="width:100%; padding:16px; background:#58CC02; color:#FFFFFF; border:none; border-radius:16px; font-size:17px; font-weight:900; cursor:pointer; box-shadow:0 4px 0 #49A700;" onClick="{{ joinApp }}">Let's play</button>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 375, &quot;height&quot;: 812}}">
+class Component extends DCLogic {
+  state = {
+    screen: 'leaderboard',
+    logPlayer1: null,
+    logPlayer2: null,
+    sets: [{ p1: '', p2: '' }],
+    playerSheetFor: null,
+    showConfirmation: false,
+    email: '',
+    displayName: '',
+    avatarColor: '#5B54E8',
+  };
+
+  players = [
+    { id: 'ahmed',  name: 'Ahmed',  elo: 1284, w: 18, l: 6,  streak: 'W4', color: '#5B54E8', shadow: '#4340B0', initial: 'A' },
+    { id: 'zara',   name: 'Zara',   elo: 1201, w: 15, l: 8,  streak: 'W1', color: '#DB3A8C', shadow: '#B02870', initial: 'Z' },
+    { id: 'marcus', name: 'Marcus', elo: 1143, w: 12, l: 11, streak: 'L2', color: '#D97706', shadow: '#B05C00', initial: 'M' },
+    { id: 'priya',  name: 'Priya',  elo: 1098, w: 10, l: 13, streak: 'L1', color: '#059669', shadow: '#027050', initial: 'P' },
+    { id: 'dev',    name: 'Dev',    elo:  987, w:  7, l: 16, streak: 'L3', color: '#DC2626', shadow: '#B01818', initial: 'D' },
+  ];
+
+  ahmedHistory = [
+    { date: 'Jun 22', opp: 'Marcus', score: '6–3, 6–4', delta: '+22' },
+    { date: 'Jun 18', opp: 'Zara',   score: '7–5, 6–3', delta: '+12' },
+    { date: 'Jun 14', opp: 'Priya',  score: '6–4, 7–5', delta: '+14' },
+    { date: 'Jun 8',  opp: 'Dev',    score: '6–2, 6–1', delta: '+18' },
+  ];
+
+  ahmedH2H = [
+    { name: 'Zara',   color: '#DB3A8C', shadow: '#B02870', initial: 'Z', record: '3W 2L' },
+    { name: 'Marcus', color: '#D97706', shadow: '#B05C00', initial: 'M', record: '5W 1L' },
+    { name: 'Priya',  color: '#059669', shadow: '#027050', initial: 'P', record: '4W 2L' },
+    { name: 'Dev',    color: '#DC2626', shadow: '#B01818', initial: 'D', record: '6W 1L' },
+  ];
+
+  eloHistory = [1180, 1195, 1210, 1205, 1220, 1240, 1235, 1258, 1270, 1284];
+
+  colorOptions = [
+    { color: '#5B54E8', shadow: '#4340B0' },
+    { color: '#DB3A8C', shadow: '#B02870' },
+    { color: '#D97706', shadow: '#B05C00' },
+    { color: '#059669', shadow: '#027050' },
+    { color: '#DC2626', shadow: '#B01818' },
+    { color: '#0891B2', shadow: '#066888' },
+    { color: '#7C3AED', shadow: '#5A28C0' },
+    { color: '#EA580C', shadow: '#B83C08' },
+  ];
+
+  getShadow(color) {
+    const opt = this.colorOptions.find(o => o.color === color);
+    return opt ? opt.shadow : '#333333';
+  }
+
+  renderVals() {
+    const { screen, logPlayer1, logPlayer2, sets, playerSheetFor, showConfirmation, email, displayName, avatarColor } = this.state;
+
+    const isLeaderboard = screen === 'leaderboard';
+    const isLog        = screen === 'log';
+    const isProfile    = screen === 'profile';
+    const isLogin      = screen === 'login';
+    const isOnboarding = screen === 'onboarding';
+
+    const goTo = (s) => () => this.setState({ screen: s });
+    const navColor = (s) => screen === s ? '#58CC02' : '#AFAFAF';
+
+    const rankColors = ['#FFB800', '#AFAFAF', '#A0856C', '#AFAFAF', '#AFAFAF'];
+
+    const rankedPlayers = this.players.map((p, i) => ({
+      ...p,
+      rank: String(i + 1),
+      record: `${p.w}W ${p.l}L`,
+      rankColor: rankColors[i] || '#AFAFAF',
+      avatarShadow: p.shadow,
+      bottomBorder: i === 0 ? '4px solid #FFD966' : '4px solid #D5D5D5',
+      streakColor:  p.streak.startsWith('W') ? '#49A700' : '#CC3333',
+      streakBg:     p.streak.startsWith('W') ? '#D7FFB8' : '#FFD5D5',
+    }));
+
+    const setScore = (idx, side, val) => {
+      const clean = val.replace(/\D/g, '').slice(0, 2);
+      const newSets = this.state.sets.map((s, i) => i === idx ? { ...s, [side]: clean } : s);
+      this.setState({ sets: newSets });
+    };
+
+    const set0 = sets[0] || { p1: '', p2: '' };
+    const set1 = sets[1] || { p1: '', p2: '' };
+    const set2 = sets[2] || { p1: '', p2: '' };
+
+    let p1Sets = 0, p2Sets = 0;
+    sets.forEach(s => {
+      const a = parseInt(s.p1), b = parseInt(s.p2);
+      if (s.p1 && s.p2 && !isNaN(a) && !isNaN(b)) {
+        if (a > b) p1Sets++;
+        else if (b > a) p2Sets++;
+      }
+    });
+
+    const hasSomeScore    = sets.some(s => s.p1 && s.p2);
+    const showLivePreview = !!(logPlayer1 && logPlayer2 && hasSomeScore);
+    const logValid        = !!(logPlayer1 && logPlayer2 && logPlayer1.id !== logPlayer2.id && hasSomeScore);
+    const leadSets = Math.max(p1Sets, p2Sets), trailSets = Math.min(p1Sets, p2Sets);
+    const pWinner  = p1Sets >= p2Sets ? logPlayer1 : logPlayer2;
+    const winnerText = hasSomeScore && logPlayer1 && logPlayer2
+      ? (p1Sets === p2Sets ? 'Sets tied' : `${pWinner.name} wins ${leadSets}–${trailSets}`)
+      : '';
+
+    const sheetPlayers = this.players.map(p => ({
+      ...p,
+      record: `${p.w}W ${p.l}L`,
+      avatarShadow: p.shadow,
+      onSelect: () => {
+        const sf = this.state.playerSheetFor;
+        if (sf === 1) this.setState({ logPlayer1: p, playerSheetFor: null });
+        else          this.setState({ logPlayer2: p, playerSheetFor: null });
+      },
+    }));
+
+    const confWinner = p1Sets >= p2Sets ? logPlayer1 : logPlayer2;
+    const confLoser  = p1Sets >= p2Sets ? logPlayer2 : logPlayer1;
+    const scoresText = sets.filter(s => s.p1 && s.p2).map(s => `${s.p1}–${s.p2}`).join(', ');
+
+    // ELO sparkline
+    const eloData = this.eloHistory;
+    const svgW = 335, svgH = 88;
+    const eloMin = Math.min(...eloData), eloMax = Math.max(...eloData);
+    const minV = eloMin - 22, maxV = eloMax + 22;
+    const pts = eloData.map((v, i) => [
+      (i / (eloData.length - 1)) * svgW,
+      svgH - ((v - minV) / (maxV - minV)) * svgH,
+    ]);
+    const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+    const areaPath = `${linePath} L${svgW},${svgH} L0,${svgH} Z`;
+    const lp = pts[pts.length - 1];
+    const baseY = (svgH - ((1000 - minV) / (maxV - minV)) * svgH).toFixed(1);
+
+    const eloChart = React.createElement('div', null,
+      React.createElement('svg', {
+        width: '100%', viewBox: `0 0 ${svgW} ${svgH}`,
+        style: { display: 'block', overflow: 'visible' },
+      },
+        React.createElement('defs', null,
+          React.createElement('linearGradient', { id: 'elg', x1: '0', y1: '0', x2: '0', y2: '1' },
+            React.createElement('stop', { offset: '0%',   stopColor: '#58CC02', stopOpacity: '0.2' }),
+            React.createElement('stop', { offset: '100%', stopColor: '#58CC02', stopOpacity: '0' }),
+          ),
+        ),
+        React.createElement('line', { x1: 0, y1: baseY, x2: svgW, y2: baseY, stroke: '#EBEBEB', strokeWidth: '2', strokeDasharray: '5,4' }),
+        React.createElement('path', { d: areaPath, fill: 'url(#elg)' }),
+        React.createElement('path', { d: linePath, stroke: '#58CC02', strokeWidth: '2.5', fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }),
+        React.createElement('circle', { cx: lp[0].toFixed(1), cy: lp[1].toFixed(1), r: '5', fill: '#58CC02', stroke: 'white', strokeWidth: '2' }),
+      ),
+      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', marginTop: '10px' } },
+        React.createElement('span', { style: { fontSize: '11px', color: '#AFAFAF', fontVariantNumeric: 'tabular-nums', fontWeight: '700' } }, `${eloMin}`),
+        React.createElement('span', { style: { fontSize: '11px', color: '#AFAFAF', fontWeight: '700' } }, '10 matches'),
+        React.createElement('span', { style: { fontSize: '11px', color: '#49A700', fontWeight: '800', fontVariantNumeric: 'tabular-nums' } }, `${eloMax}`),
+      ),
+    );
+
+    const colorCircles = this.colorOptions.map(o => ({
+      color: o.color,
+      selected: avatarColor === o.color,
+      shadowColor: o.shadow,
+      border: avatarColor === o.color ? '3px solid #3C3C3C' : '3px solid transparent',
+      onSelect: () => this.setState({ avatarColor: o.color }),
+    }));
+    const displayInitial = displayName?.[0]?.toUpperCase() || '';
+    const avatarShadowColor = this.getShadow(avatarColor);
+
+    return {
+      isLeaderboard, isLog, isProfile, isLogin, isOnboarding,
+      rankedPlayers,
+      navLbColor:      navColor('leaderboard'),
+      navLogColor:     navColor('log'),
+      navProfileColor: navColor('profile'),
+      goLeaderboard: goTo('leaderboard'),
+      goLog:         goTo('log'),
+      goProfile:     goTo('profile'),
+      goLogin:       goTo('login'),
+      goOnboarding:  goTo('onboarding'),
+      goBack:        goTo('leaderboard'),
+      logP1Name:       logPlayer1?.name || 'Pick a player',
+      logP2Name:       logPlayer2?.name || 'Pick a player',
+      logP1Color:      logPlayer1?.color || '#E5E5E5',
+      logP2Color:      logPlayer2?.color || '#E5E5E5',
+      logP1Initial:    logPlayer1?.name?.[0] || '',
+      logP2Initial:    logPlayer2?.name?.[0] || '',
+      logP1TextColor:  logPlayer1 ? '#3C3C3C' : '#AFAFAF',
+      logP2TextColor:  logPlayer2 ? '#3C3C3C' : '#AFAFAF',
+      logP1AvatarBorder: logPlayer1 ? 'none' : '2px dashed #D5D5D5',
+      logP2AvatarBorder: logPlayer2 ? 'none' : '2px dashed #D5D5D5',
+      logP1AvatarShadow: logPlayer1 ? `0 3px 0 ${logPlayer1.shadow}` : 'none',
+      logP2AvatarShadow: logPlayer2 ? `0 3px 0 ${logPlayer2.shadow}` : 'none',
+      openSheet1: () => this.setState({ playerSheetFor: 1 }),
+      openSheet2: () => this.setState({ playerSheetFor: 2 }),
+      closeSheet:  () => this.setState({ playerSheetFor: null }),
+      playerSheetOpen: !!playerSheetFor,
+      sheetPlayers,
+      set0p1: set0.p1, set0p2: set0.p2,
+      set1p1: set1.p1, set1p2: set1.p2,
+      set2p1: set2.p1, set2p2: set2.p2,
+      showSet1: sets.length > 1,
+      showSet2: sets.length > 2,
+      canAddSet: sets.length < 3,
+      onSet0P1: (e) => setScore(0, 'p1', e.target.value),
+      onSet0P2: (e) => setScore(0, 'p2', e.target.value),
+      onSet1P1: (e) => setScore(1, 'p1', e.target.value),
+      onSet1P2: (e) => setScore(1, 'p2', e.target.value),
+      onSet2P1: (e) => setScore(2, 'p1', e.target.value),
+      onSet2P2: (e) => setScore(2, 'p2', e.target.value),
+      addSet: () => { if (this.state.sets.length < 3) this.setState({ sets: [...this.state.sets, { p1: '', p2: '' }] }); },
+      logValid, showLivePreview, winnerText,
+      logBtnBg:    logValid ? '#58CC02' : '#E5E5E5',
+      logBtnColor: logValid ? '#FFFFFF' : '#AFAFAF',
+      logBtnShadow: logValid ? '0 4px 0 #49A700' : '0 4px 0 #C5C5C5',
+      submitMatch: () => { if (logValid) this.setState({ showConfirmation: true }); },
+      showConfirmation,
+      setScoresText: scoresText || '6–3, 6–4',
+      confTitle: (confWinner && confLoser) ? `${confWinner.name} def. ${confLoser.name}` : 'Ahmed def. Marcus',
+      confWinnerInitial: confWinner?.name?.[0] || 'A',
+      confLoserInitial:  confLoser?.name?.[0]  || 'M',
+      confWinnerColor:   confWinner?.color || '#5B54E8',
+      confLoserColor:    confLoser?.color  || '#D97706',
+      confWinnerShadow:  confWinner?.shadow || '#4340B0',
+      confLoserShadow:   confLoser?.shadow  || '#B05C00',
+      confWinnerName:    confWinner?.name  || 'Ahmed',
+      confLoserName:     confLoser?.name   || 'Marcus',
+      confWinnerDelta:   '+22',
+      confLoserDelta:    '−18',
+      confWinnerNewElo:  String((confWinner?.elo || 1284) + 22),
+      confLoserNewElo:   String((confLoser?.elo  || 1143) - 18),
+      closeConfirmation: () => this.setState({
+        showConfirmation: false, screen: 'leaderboard',
+        logPlayer1: null, logPlayer2: null, sets: [{ p1: '', p2: '' }],
+      }),
+      ahmedH2H:     this.ahmedH2H,
+      ahmedMatches: this.ahmedHistory,
+      eloChart,
+      email, displayName, avatarColor, colorCircles, displayInitial,
+      avatarShadow: avatarShadowColor,
+      onEmailChange:       (e) => this.setState({ email: e.target.value }),
+      onDisplayNameChange: (e) => this.setState({ displayName: e.target.value }),
+      sendMagicLink: () => this.setState({ screen: 'onboarding' }),
+      joinApp:       () => this.setState({ screen: 'leaderboard' }),
+    };
+  }
+}
+</script>
+</body>
+</html>
