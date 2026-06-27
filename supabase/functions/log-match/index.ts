@@ -78,6 +78,10 @@ Deno.serve(async (req) => {
     if (player1_id === player2_id) {
       return jsonResponse({ error: 'Players must be different' }, 400);
     }
+    // You can only log a match you played in.
+    if (logger.id !== player1_id && logger.id !== player2_id) {
+      return jsonResponse({ error: 'You can only log matches you played in' }, 403);
+    }
     if (!validateSets(sets)) {
       return jsonResponse({ error: 'Invalid set scores' }, 400);
     }
