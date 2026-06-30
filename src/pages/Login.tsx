@@ -1,26 +1,111 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../auth';
 import PrimaryButton from '../components/PrimaryButton';
+import { DEFAULT_AVATAR_COLOR } from '../lib/theme';
+
+type Mode = 'signin' | 'signup';
 
 export default function Login() {
+  const { refreshPlayer } = useAuth();
+  const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
 
-  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const canSubmit =
+    emailValid &&
+    password.length >= 6 &&
+    (mode === 'signin' || username.trim().length >= 2);
 
-  async function sendLink() {
-    if (!valid || sending) return;
-    setSending(true);
+  function switchMode(next: Mode) {
+    setMode(next);
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({
+  }
+
+  async function submit() {
+    if (!canSubmit || loading) return;
+    setLoading(true);
+    setError(null);
+
+    if (mode === 'signin') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // Sign up
+    const trimmedUsername = username.trim();
+
+    // Check username uniqueness
+    const { data: existing } = await supabase
+      .from('players')
+      .select('id')
+      .ilike('display_name', trimmedUsername)
+      .maybeSingle();
+    if (existing) {
+      setError('That username is taken — pick another.');
+      setLoading(false);
+      return;
+    }
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
-      options: { emailRedirectTo: window.location.origin },
+      password,
+      options: { data: { username: trimmedUsername } },
     });
-    setSending(false);
-    if (error) setError(error.message);
-    else setSent(true);
+    if (signUpError) {
+      setError(signUpError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.session) {
+      // Email confirmation disabled — create the player profile immediately.
+      const { error: insertError } = await supabase.from('players').insert({
+        user_id: data.session.user.id,
+        display_name: trimmedUsername,
+        avatar_color: DEFAULT_AVATAR_COLOR,
+      });
+      if (insertError) {
+        setError(insertError.code === '23505' ? 'That username is taken — pick another.' : insertError.message);
+        setLoading(false);
+        return;
+      }
+      await refreshPlayer();
+    } else {
+      // Email confirmation required — user will complete profile in onboarding after confirming.
+      setConfirmed(true);
+    }
+
+    setLoading(false);
+  }
+
+  if (confirmed) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-7">
+        <div
+          className="w-full rounded-2xl border-2 border-green-mid bg-green-light px-5 py-6 text-center"
+          style={{ borderBottomWidth: 4, borderBottomColor: 'var(--color-green-shadow)' }}
+        >
+          <p className="mb-1 text-lg font-black text-ink">Check your email</p>
+          <p className="text-sm font-bold text-green-dark">
+            We sent a confirmation link to {email}. Click it to activate your account, then sign in.
+          </p>
+        </div>
+        <button
+          className="mt-5 text-sm font-bold text-muted"
+          onClick={() => { setConfirmed(false); setMode('signin'); }}
+        >
+          Back to sign in
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -42,38 +127,69 @@ export default function Login() {
       </div>
 
       <div className="pb-[52px]">
-        {sent ? (
-          <div
-            className="rounded-2xl border-2 border-green-mid bg-green-light px-5 py-6 text-center"
-            style={{ borderBottomWidth: 4, borderBottomColor: 'var(--color-green-shadow)', animation: 'popin 0.3s ease' }}
-          >
-            <p className="mb-1 text-lg font-black text-ink">Check your email</p>
-            <p className="text-sm font-bold text-green-dark">
-              We sent a login link to {email}. Open it on this device to sign in.
-            </p>
-          </div>
-        ) : (
-          <>
+        {/* Tab toggle */}
+        <div
+          className="mb-6 flex rounded-2xl border-2 border-edge bg-surface p-1"
+          style={{ borderBottomWidth: 4, borderBottomColor: 'var(--color-edge-shadow)' }}
+        >
+          {(['signin', 'signup'] as Mode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => switchMode(m)}
+              className="flex-1 rounded-xl py-2.5 text-sm font-extrabold transition-colors"
+              style={
+                mode === m
+                  ? { background: 'var(--color-green)', color: 'white' }
+                  : { color: 'var(--color-muted)' }
+              }
+            >
+              {m === 'signin' ? 'Sign in' : 'Sign up'}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="w-full rounded-2xl border-2 border-edge bg-surface p-[17px] text-base font-bold text-ink"
+            style={{ borderBottomWidth: 4, borderBottomColor: 'var(--color-edge-shadow)' }}
+          />
+
+          {mode === 'signup' && (
             <input
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendLink()}
-              placeholder="your@email.com"
-              className="mb-3 w-full rounded-2xl border-2 border-edge bg-surface p-[17px] text-base font-bold text-ink"
+              type="text"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="username"
+              maxLength={20}
+              className="w-full rounded-2xl border-2 border-edge bg-surface p-[17px] text-base font-bold text-ink"
               style={{ borderBottomWidth: 4, borderBottomColor: 'var(--color-edge-shadow)' }}
             />
-            <PrimaryButton onClick={sendLink} disabled={!valid || sending} style={{ marginBottom: 18 }}>
-              {sending ? 'Sending…' : 'Send magic link'}
-            </PrimaryButton>
-            {error && <p className="mb-2 text-center text-sm font-bold text-loss-dark">{error}</p>}
-            <p className="text-center text-[13px] font-bold leading-relaxed text-muted">
-              We'll email you a link — no password needed.
-            </p>
-          </>
-        )}
+          )}
+
+          <input
+            type="password"
+            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            placeholder="password (min 6 chars)"
+            className="w-full rounded-2xl border-2 border-edge bg-surface p-[17px] text-base font-bold text-ink"
+            style={{ borderBottomWidth: 4, borderBottomColor: 'var(--color-edge-shadow)' }}
+          />
+        </div>
+
+        {error && <p className="mb-2 mt-4 text-center text-sm font-bold text-loss-dark">{error}</p>}
+
+        <PrimaryButton onClick={submit} disabled={!canSubmit || loading} style={{ marginTop: 18 }}>
+          {loading ? (mode === 'signin' ? 'Signing in…' : 'Creating account…') : (mode === 'signin' ? 'Sign in' : 'Create account')}
+        </PrimaryButton>
       </div>
     </div>
   );

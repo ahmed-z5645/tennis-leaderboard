@@ -8,7 +8,7 @@ import PrimaryButton from '../components/PrimaryButton';
 export default function Onboarding() {
   const { session, refreshPlayer } = useAuth();
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState(session?.user.user_metadata?.username ?? '');
   const [avatarColor, setAvatarColor] = useState(DEFAULT_AVATAR_COLOR);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
