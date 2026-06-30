@@ -11,7 +11,7 @@ export type SetScore = { p1: number; p2: number };
 export function isValidSet(set: SetScore): boolean {
   const { p1, p2 } = set;
   if (!Number.isInteger(p1) || !Number.isInteger(p2)) return false;
-  if (p1 < 0 || p1 > 7 || p2 < 0 || p2 > 7) return false;
+  if (p1 < 0 || p1 > 15 || p2 < 0 || p2 > 15) return false;
   return p1 !== p2;
 }
 
