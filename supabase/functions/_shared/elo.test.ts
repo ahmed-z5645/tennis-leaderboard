@@ -10,13 +10,14 @@ import {
 } from './elo';
 
 describe('isValidSet / validateSets', () => {
-  it('accepts conclusive sets within 0–7', () => {
+  it('accepts conclusive sets within 0–15', () => {
     expect(isValidSet({ p1: 6, p2: 3 })).toBe(true);
     expect(isValidSet({ p1: 7, p2: 5 })).toBe(true);
+    expect(isValidSet({ p1: 15, p2: 13 })).toBe(true);
   });
   it('rejects ties, out-of-range, and non-integers', () => {
     expect(isValidSet({ p1: 6, p2: 6 })).toBe(false);
-    expect(isValidSet({ p1: 8, p2: 3 })).toBe(false);
+    expect(isValidSet({ p1: 16, p2: 3 })).toBe(false);
     expect(isValidSet({ p1: -1, p2: 3 })).toBe(false);
     expect(isValidSet({ p1: 6.5, p2: 3 })).toBe(false);
   });
