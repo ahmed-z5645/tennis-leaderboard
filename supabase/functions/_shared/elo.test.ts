@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BASE_K,
   calculateElo,
   deriveWinner,
   eloFromSets,
@@ -64,6 +65,53 @@ describe('calculateElo', () => {
     const upset = calculateElo(900, 1100, 1.0).winnerDelta;
     const expected = calculateElo(1100, 900, 1.0).winnerDelta;
     expect(upset).toBeGreaterThan(expected);
+  });
+
+  // ── Zero-sum property ───────────────────────────────────────────────
+  // The loser's loss must always mirror the winner's gain. Regression guard
+  // for a bug where loserDelta used `k * expected` instead of `k * (1 - expected)`,
+  // which inverted the result: expected wins drained the favorite's rating and
+  // upsets barely dented it.
+  it('is zero-sum across a range of elo gaps and margins', () => {
+    const gaps = [-400, -200, -100, -25, 0, 25, 100, 200, 400, 800];
+    const margins = [0.5, 0.7, 1.0, 1.25, 1.5];
+    for (const gap of gaps) {
+      for (const mult of margins) {
+        const { winnerDelta, loserDelta } = calculateElo(1000 + gap, 1000, mult);
+        expect(loserDelta, `gap ${gap}, mult ${mult}`).toBe(-winnerDelta);
+      }
+    }
+  });
+
+  it('moves ratings only a little when the favorite wins as expected', () => {
+    const { winnerDelta, loserDelta } = calculateElo(1200, 1000, 1.0);
+    expect(winnerDelta).toBe(8); // 32 * (1 - 0.76) ≈ 7.7
+    expect(loserDelta).toBe(-8);
+    expect(winnerDelta).toBeLessThan(BASE_K / 2);
+  });
+
+  it('moves ratings a lot on a big upset', () => {
+    const { winnerDelta, loserDelta } = calculateElo(1000, 1200, 1.0);
+    expect(winnerDelta).toBe(24); // 32 * (1 - 0.24) ≈ 24.3
+    expect(loserDelta).toBe(-24);
+    expect(winnerDelta).toBeGreaterThan(BASE_K / 2);
+  });
+
+  it('trades the same magnitude both ways for a mirrored matchup', () => {
+    // A beating B by X must cost B exactly what B beating A would cost A,
+    // when the roles (and so the surprise) are swapped.
+    const favoriteWins = calculateElo(1200, 1000, 1.0);
+    const underdogWins = calculateElo(1000, 1200, 1.0);
+    expect(favoriteWins.winnerDelta + underdogWins.winnerDelta).toBe(BASE_K);
+    expect(favoriteWins.loserDelta).toBe(-favoriteWins.winnerDelta);
+    expect(underdogWins.loserDelta).toBe(-underdogWins.winnerDelta);
+  });
+
+  it('keeps a match zero-sum end to end via eloFromSets', () => {
+    const sets = [{ p1: 6, p2: 2 }, { p1: 6, p2: 1 }];
+    const r = eloFromSets(sets, 'p2', 1350, 1010);
+    expect(r.p1Delta + r.p2Delta).toBe(0);
+    expect(r.loserDelta).toBe(-r.winnerDelta);
   });
 });
 

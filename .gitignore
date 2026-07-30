@@ -30,3 +30,6 @@ supabase/.branches
 *.njsproj
 *.sln
 *.sw?
+
+# One-off ELO recalc backups
+elo_history-backup-*.json

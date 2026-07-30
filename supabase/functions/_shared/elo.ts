@@ -57,7 +57,13 @@ export function totalGames(sets: SetScore[]): { p1: number; p2: number } {
   );
 }
 
-/** Standard ELO expected-score + margin-weighted K. Deltas are integers. */
+/**
+ * Standard ELO expected-score + margin-weighted K. Deltas are integers.
+ *
+ * `expected` is the WINNER's win probability, so the surprise of the result is
+ * `1 - expected` for both sides. Both deltas derive from that single magnitude,
+ * which keeps the exchange zero-sum: the winner's gain mirrors the loser's loss.
+ */
 export function calculateElo(
   winnerElo: number,
   loserElo: number,
@@ -65,9 +71,8 @@ export function calculateElo(
 ): { winnerDelta: number; loserDelta: number } {
   const expected = 1 / (1 + Math.pow(10, (loserElo - winnerElo) / 400));
   const k = BASE_K * marginMultiplier;
-  const winnerDelta = Math.round(k * (1 - expected));
-  const loserDelta = -Math.round(k * expected);
-  return { winnerDelta, loserDelta };
+  const delta = Math.round(k * (1 - expected));
+  return { winnerDelta: delta, loserDelta: -delta };
 }
 
 /**
